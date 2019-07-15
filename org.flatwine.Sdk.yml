@@ -1,0 +1,269 @@
+id: org.flatwine.Sdk
+id-platform: org.flatwine.Platform
+branch: master
+
+build-runtime: true
+
+sdk: org.freedesktop.Sdk
+runtime: org.freedesktop.Platform
+runtime-version: "19.08beta"
+
+add-extensions:
+  org.flatwine.Sdk.Docs:
+    directory: share/runtime/docs
+    bundle: true
+    autodelete: true
+    no-autodownload: true
+
+  org.flatwine.Platform.Compat.i386:
+    directory: lib/i386-linux-gnu
+    add-ld-path: "."
+    no-autodownload: false
+    autodelete: false
+
+  org.flatwine.Platform.Compat.i386.Debug:
+    directory: lib/debug/lib/i386-linux-gnu
+    version: "19.08beta"
+    no-autodownload: true
+
+  org.freedesktop.Platform.GL32:
+    directory: lib/i386-linux-gnu/GL
+    version: "1.4"
+    versions: "1.6;1.4"
+    subdirectories: true
+    no-autodownload: true
+    autodelete: false
+    add-ld-path: lib
+    merge-dirs: vulkan/icd.d;glvnd/egl_vendor.d;OpenCL/vendors
+    download-if: active-gl-driver
+    enable-if: active-gl-driver
+
+  org.freedesktop.Platform.VAAPI.Intel.i386:
+    directory: lib/i386-linux-gnu/dri/intel-vaapi-driver
+    no-autodownload: true
+    autodelete: false
+    download-if: have-intel-gpu
+
+sdk-extensions:
+  - org.freedesktop.Sdk.Locale
+  - org.freedesktop.Sdk.Docs
+
+platform-extensions:
+  - org.freedesktop.Platform.Locale
+
+inherit-sdk-extensions:
+  - org.freedesktop.Sdk.Extension
+
+inherit-extensions:
+  - org.freedesktop.Platform.GL
+  - org.freedesktop.Platform.Timezones
+  - org.freedesktop.Platform.GStreamer
+  - org.freedesktop.Platform.VAAPI.Intel
+  - org.freedesktop.Platform.ffmpeg-html5
+
+finish-args:
+  - --sdk=org.flatwine.Sdk//master
+  - --runtime=org.flatwine.Platform//master
+  - --allow=multiarch
+  - --env=XDG_DATA_DIRS=/app/share:/usr/share:/usr/share/runtime/share:/run/host/share
+  - --env=WINEPREFIX=/var/data/wine
+
+cleanup-commands:
+  - /usr/libexec/freedesktop-post.sh
+
+cleanup-platform:
+  - /lib/*/*.a
+  - /lib/*/*.la
+  - /include
+  - /lib/pkgconfig
+  - /share/pkgconfig
+  - /share/aclocal
+  - /lib/cmake
+  - /lib/*/wine/*.def
+
+cleanup-platform-commands:
+  - /usr/libexec/freedesktop-post.sh
+  #FIXME avoid such a hackish way to revert the libdir
+  - |
+    set -e
+    if [ "$FLATPAK_ARCH" = "x86_64" ]; then
+      rm /usr/lib/i386-linux-gnu
+      mkdir /usr/lib/i386-linux-gnu
+      rm /usr/lib/ld-linux.so.2
+      ln -s i386-linux-gnu/ld-linux.so.2 /usr/lib/ld-linux.so.2
+    fi
+
+modules:
+
+  - name: wine
+    build-options:
+      arch:
+        x86_64:
+          config-opts:
+            - --enable-win64
+            - --bindir=/usr/lib/x86_64-linux-gnu/bin
+        i386:
+          config-opts:
+            - --bindir=/usr/lib/i386-linux-gnu/bin
+    config-opts:
+      - --disable-win16
+      - --disable-tests
+      - --with-x
+      - --with-pulse
+      - --with-dbus
+      - --without-hal
+      - --without-oss
+    make-install-args:
+      - LDCONFIG=/bin/true
+      - STRIP=/bin/true
+      - UPDATE_DESKTOP_DATABASE=/bin/true
+    post-install:
+      - |
+        case $FLATPAK_ARCH in
+          x86_64)
+            mv /usr/lib/x86_64-linux-gnu/bin/wineserver{,64}
+          ;;
+          i386)
+            mv /usr/lib/i386-linux-gnu/bin/wineserver{,32}
+          ;;
+        esac
+    sources:
+      - type: archive
+        url: "https://dl.winehq.org/wine/source/4.x/wine-4.11.tar.xz"
+        sha256: 2e515766d59d3afdfd5f8d0eb29eb1d1d4ae84969c0a7a7eb4427feb2977bee6
+    modules:
+
+      - name: openldap
+        config-opts:
+          - --disable-static
+          - --disable-slapd
+          - --disable-slurpd
+          - --disable-bdb
+          - --disable-hdb
+        cleanup:
+          - /bin
+        sources:
+          - type: archive
+            url: "https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.4.47.tgz"
+            sha256: f54c5877865233d9ada77c60c0f69b3e0bfd8b1b55889504c650047cc305520b
+
+      - name: glu
+        config-opts:
+          - --disable-static
+        sources:
+          - type: archive
+            url: "https://mesa.freedesktop.org/archive/glu/glu-9.0.0.tar.bz2"
+            sha256: 1f7ad0d379a722fcbd303aa5650c6d7d5544fde83196b42a73d1193568a4df12
+
+      - name: eudev
+        cleanup:
+          - /bin
+          - /sbin
+          - /lib*/udev
+        config-opts:
+          - --sbindir=/usr/bin
+        post-install:
+          - udevadm hwdb --update
+        sources:
+          - type: archive
+            url: "https://github.com/gentoo/eudev/archive/v3.2.7.tar.gz"
+            sha256: ce2fda4dea129bbcf824c947aab23504bcd26911481b47dbaf10646f723083a4
+
+      - name: OpenCL
+        buildsystem: simple
+        build-commands:
+          - cp -av CL $FLATPAK_DEST/include/
+        sources:
+          - type: git
+            url: "https://github.com/KhronosGroup/OpenCL-Headers.git"
+            commit: c5a4bbeabb10d8ed3d1c651b93aa31737bc473dd
+
+      - name: libpcap
+        config-opts:
+          - --enable-ipv6
+        sources:
+          - type: archive
+            url: "https://www.tcpdump.org/release/libpcap-1.9.0.tar.gz"
+            sha256: 2edb88808e5913fdaa8e9c1fcaf272e19b2485338742b5074b9fe44d68f37019
+
+      - name: v4l2-utils
+        config-opts:
+          - --disable-v4l-utils
+          - --disable-qv4l2
+          - --disable-qvidcap
+        sources:
+          - type: archive
+            url: "https://linuxtv.org/downloads/v4l-utils/v4l-utils-1.16.6.tar.bz2"
+            sha256: f9dac1878e3d5636eab7f56bb209fdfc66b94ee8a2aae54dcb4282fe63a678ae
+
+      - name: libgphoto2
+        sources:
+          - type: archive
+            url: "https://github.com/gphoto/libgphoto2/archive/libgphoto2-2_5_23-release.tar.gz"
+            sha256: 8de52fd997aceda895abad5d8d95a888bce24a1c739079cff64dae1da7039dde
+          - type: script
+            dest-filename: autogen.sh
+            commands:
+              - autoreconf -ifv
+
+      - name: libcapi20
+        sources:
+          - type: archive
+            url: "http://deb.debian.org/debian/pool/main/libc/libcapi20-3/libcapi20-3_3.27.orig.tar.bz2"
+            md5: 439620a9221c0222c35fb3e7a3973700
+
+      - name: gsm
+        build-options:
+          arch:
+            x86_64:
+              make-install-args:
+                - GSM_INSTALL_LIB=/usr/lib/x86_64-linux-gnu
+            i386:
+              make-install-args:
+                - GSM_INSTALL_LIB=/usr/lib/i386-linux-gnu
+        make-install-args:
+          - INSTALL_ROOT=/usr
+          - GSM_INSTALL_INC=/usr/include
+        no-autogen: true
+        cleanup:
+          - /bin
+        sources:
+          - type: archive
+            url: "http://www.quut.com/gsm/gsm-1.0.18.tar.gz"
+            sha256: 04f68087c3348bf156b78d59f4d8aff545da7f6e14f33be8f47d33f4efae2a10
+          - type: patch
+            path: patches/gsm-makefile.patch
+
+      - name: vkd3d
+        sources:
+          - type: archive
+            url: "https://dl.winehq.org/vkd3d/source/vkd3d-1.1.tar.xz"
+            sha256: 495adc61cc80c65d54b2f5b52092ea05d3797cc2c17a610f0fc98457d2f56ab6
+        modules:
+
+          - name: SPIRV-Headers
+            buildsystem: cmake-ninja
+            sources:
+              - type: git
+                url: "https://github.com/KhronosGroup/SPIRV-Headers.git"
+                commit: 8bea0a266ac9b718aa0818d9e3a47c0b77c2cb23
+
+      - name: FAudio
+        buildsystem: cmake-ninja
+        config-opts:
+          - -DFFMPEG=ON
+        sources:
+          - type: archive
+            url: "https://github.com/FNA-XNA/FAudio/archive/19.06.07.tar.gz"
+            sha256: 3a062ac74e787d2c50a5d178e9021ca4b2d4dddbbea6d36b82c767eb7f957128
+          - type: patch
+            path: patches/faudio-sdl2-use-pkg-config.patch
+
+  - name: wineserver
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 wineserver.py /usr/lib/$(gcc -print-multiarch)/bin/wineserver
+      - ln -sr /usr/lib/$(gcc -print-multiarch)/bin/wineserver /usr/bin/wineserver
+    sources:
+      - type: file
+        path: scripts/wineserver.py
