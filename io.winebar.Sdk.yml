@@ -80,6 +80,26 @@ cleanup-platform:
   - /share/aclocal
   - /lib/cmake
   - /lib/*/wine/*.def
+  - /bin/function_grep.pl
+  - /lib/*/bin/function_grep.pl
+  - /bin/widl
+  - /lib/*/bin/widl
+  - /bin/winebuild
+  - /lib/*/bin/winebuild
+  - /bin/winecpp
+  - /lib/*/bin/winecpp
+  - /bin/winedump
+  - /lib/*/bin/winedump
+  - /bin/winegcc
+  - /lib/*/bin/winegcc
+  - /bin/wineg++
+  - /lib/*/bin/wineg++
+  - /bin/winemaker
+  - /lib/*/bin/winemaker
+  - /bin/wmc
+  - /lib/*/bin/wmc
+  - /bin/wrc
+  - /lib/*/bin/wrc
 
 cleanup-platform-commands:
   - /usr/libexec/freedesktop-post.sh
@@ -263,7 +283,22 @@ modules:
     buildsystem: simple
     build-commands:
       - install -Dm755 wineserver.py /usr/lib/$(gcc -print-multiarch)/bin/wineserver
-      - ln -sr /usr/lib/$(gcc -print-multiarch)/bin/wineserver /usr/bin/wineserver
     sources:
       - type: file
         path: scripts/wineserver.py
+
+  - name: wine-bin-symlinks
+    buildsystem: simple
+    build-commands:
+      - |
+        for b in /usr/lib/$(gcc -print-multiarch)/bin/*; do
+          ln -srv $b /usr/bin/$(basename $b)
+        done
+      - |
+        case $FLATPAK_ARCH in
+          x86_64)
+            for c in wine wine-preloader; do
+              ln -srv /usr/lib/i386-linux-gnu/bin/$c /usr/bin/$c
+            done
+          ;;
+        esac
