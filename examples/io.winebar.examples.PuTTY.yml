@@ -1,0 +1,28 @@
+id: io.winebar.examples.PuTTY
+sdk: io.winebar.Sdk
+runtime: io.winebar.Platform
+finish-args:
+  - --share=ipc
+  - --socket=x11
+  - --device=dri
+  - --share=network
+command: putty.exe
+modules:
+  - name: putty-winelib
+    subdir: windows
+    no-autogen: true
+    make-args:
+      - CC=winegcc
+      - CXX=wineg++
+      - RC=wrc
+    no-make-install: true
+    build-commands:
+      - install -Dm755 *.exe* -v -t /app/bin/
+    sources:
+      - type: git
+        url: "https://git.tartarus.org/simon/putty.git"
+        tag: "0.71"
+      - type: shell
+        commands:
+          - ./mkfiles.pl
+          - ln -s Makefile.mgw windows/Makefile
