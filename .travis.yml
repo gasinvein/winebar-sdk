@@ -1,0 +1,23 @@
+language: minimal
+dist: xenial
+
+matrix:
+  include:
+    - name: "Build for x86_64"
+      env: ARCH=x86_64
+
+    - name: "Build for i386"
+      env: ARCH=i386
+
+before_install:
+  - sudo add-apt-repository ppa:alexlarsson/flatpak -y
+  - sudo apt-get update -q
+  - sudo apt-get install flatpak flatpak-builder -y
+
+install:
+  - flatpak remote-add --user flathub https://flathub.org/repo/flathub.flatpakrepo
+  - flatpak remote-add --user flathub-beta https://flathub.org/beta-repo/flathub-beta.flatpakrepo
+  - flatpak-builder --install-deps-only --install-deps-from=flathub-beta --user --arch=$ARCH /dev/null io.winebar.Sdk.yml
+
+script:
+  - ./build.sh $ARCH ./repo "--verbose" ""
