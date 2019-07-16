@@ -12,7 +12,7 @@ matrix:
 before_install:
   - sudo add-apt-repository ppa:alexlarsson/flatpak -y
   - sudo apt-get update -q
-  - sudo apt-get install flatpak flatpak-builder -y
+  - sudo apt-get install flatpak-builder binutils elfutils git patch unzip -y
 
 install:
   - flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
