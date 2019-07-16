@@ -1,5 +1,5 @@
-id: org.flatwine.Sdk
-id-platform: org.flatwine.Platform
+id: io.winebar.Sdk
+id-platform: io.winebar.Platform
 branch: master
 
 build-runtime: true
@@ -9,19 +9,19 @@ runtime: org.freedesktop.Platform
 runtime-version: "19.08beta"
 
 add-extensions:
-  org.flatwine.Sdk.Docs:
+  io.winebar.Sdk.Docs:
     directory: share/runtime/docs
     bundle: true
     autodelete: true
     no-autodownload: true
 
-  org.flatwine.Platform.Compat.i386:
+  io.winebar.Platform.Compat.i386:
     directory: lib/i386-linux-gnu
     add-ld-path: "."
     no-autodownload: false
     autodelete: false
 
-  org.flatwine.Platform.Compat.i386.Debug:
+  io.winebar.Platform.Compat.i386.Debug:
     directory: lib/debug/lib/i386-linux-gnu
     version: "19.08beta"
     no-autodownload: true
@@ -62,8 +62,8 @@ inherit-extensions:
   - org.freedesktop.Platform.ffmpeg-html5
 
 finish-args:
-  - --sdk=org.flatwine.Sdk//master
-  - --runtime=org.flatwine.Platform//master
+  - --sdk=io.winebar.Sdk//master
+  - --runtime=io.winebar.Platform//master
   - --allow=multiarch
   - --env=XDG_DATA_DIRS=/app/share:/usr/share:/usr/share/runtime/share:/run/host/share
   - --env=WINEPREFIX=/var/data/wine

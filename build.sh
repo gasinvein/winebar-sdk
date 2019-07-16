@@ -10,7 +10,7 @@ EXPORT_ARGS="$3"
 FB_ARGS="$4"
 SUBJECT=${5:-"Build started at $(LC_ALL=C date)"}
 
-FLATPAK_ID="org.flatwine.Sdk"
+FLATPAK_ID="io.winebar.Sdk"
 #FIXME: unhardcode
 BRANCH="master"
 
