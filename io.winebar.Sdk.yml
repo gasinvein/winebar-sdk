@@ -44,6 +44,16 @@ add-extensions:
     autodelete: false
     download-if: have-intel-gpu
 
+  io.winebar.Platform.Gecko:
+    directory: share/wine/gecko
+    bundle: false
+    autodelete: true
+
+  io.winebar.Platform.Mono:
+    directory: share/wine/mono
+    bundle: false
+    autodelete: true
+
 sdk-extensions:
   - org.freedesktop.Sdk.Locale
   - org.freedesktop.Sdk.Docs
@@ -287,7 +297,7 @@ modules:
       - type: file
         path: scripts/wineserver.py
 
-  - name: wine-bin-symlinks
+  - name: environment-setup
     buildsystem: simple
     build-commands:
       - |
@@ -302,3 +312,4 @@ modules:
             done
           ;;
         esac
+      - mkdir -p /usr/share/wine/{gecko,mono}

@@ -1,0 +1,17 @@
+id: io.winebar.Platform.Mono
+runtime: io.winebar.Platform
+sdk: io.winebar.Sdk
+build-extension: true
+separate-locales: false
+appstream-compose: false
+modules:
+
+  - name: wine-mono
+    buildsystem: simple
+    build-commands:
+      - cp -a wine-mono-* ${FLATPAK_DEST}/
+    sources:
+      - type: archive
+        strip-components: 0
+        url: "https://dl.winehq.org/wine/wine-mono/4.9.0/wine-mono-bin-4.9.0.tar.gz"
+        sha256: da83d013e74f990d0acbe94ce46ef50ff0eaa9c8ebc179e9a7cef231ab9cdb64
