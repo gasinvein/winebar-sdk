@@ -70,7 +70,6 @@ inherit-extensions:
   - org.freedesktop.Platform.Timezones
   - org.freedesktop.Platform.GStreamer
   - org.freedesktop.Platform.VAAPI.Intel
-  - org.freedesktop.Platform.ffmpeg-full
 
 finish-args:
   - --sdk=io.winebar.Sdk//master
