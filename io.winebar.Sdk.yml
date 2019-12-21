@@ -6,7 +6,7 @@ build-runtime: true
 
 sdk: org.freedesktop.Sdk
 runtime: org.freedesktop.Platform
-runtime-version: "19.08beta"
+runtime-version: "19.08"
 
 add-extensions:
   io.winebar.Sdk.Docs:
@@ -19,17 +19,17 @@ add-extensions:
     directory: lib/i386-linux-gnu
     add-ld-path: "."
     no-autodownload: false
-    autodelete: false
+    autodelete: true
 
   io.winebar.Platform.Compat.i386.Debug:
     directory: lib/debug/lib/i386-linux-gnu
-    version: "19.08beta"
     no-autodownload: true
+    autodelete: true
 
   org.freedesktop.Platform.GL32:
     directory: lib/i386-linux-gnu/GL
     version: "1.4"
-    versions: "1.6;1.4"
+    versions: "19.08;1.4"
     subdirectories: true
     no-autodownload: true
     autodelete: false
@@ -40,6 +40,7 @@ add-extensions:
 
   org.freedesktop.Platform.VAAPI.Intel.i386:
     directory: lib/i386-linux-gnu/dri/intel-vaapi-driver
+    version: "19.08"
     no-autodownload: true
     autodelete: false
     download-if: have-intel-gpu
@@ -69,7 +70,7 @@ inherit-extensions:
   - org.freedesktop.Platform.Timezones
   - org.freedesktop.Platform.GStreamer
   - org.freedesktop.Platform.VAAPI.Intel
-  - org.freedesktop.Platform.ffmpeg-html5
+  - org.freedesktop.Platform.ffmpeg-full
 
 finish-args:
   - --sdk=io.winebar.Sdk//master
@@ -182,22 +183,8 @@ modules:
           - --disable-static
         sources:
           - type: archive
-            url: "https://mesa.freedesktop.org/archive/glu/glu-9.0.0.tar.bz2"
-            sha256: 1f7ad0d379a722fcbd303aa5650c6d7d5544fde83196b42a73d1193568a4df12
-
-      - name: eudev
-        cleanup:
-          - /bin
-          - /sbin
-          - /lib*/udev
-        config-opts:
-          - --sbindir=/usr/bin
-        post-install:
-          - udevadm hwdb --update
-        sources:
-          - type: archive
-            url: "https://github.com/gentoo/eudev/archive/v3.2.7.tar.gz"
-            sha256: ce2fda4dea129bbcf824c947aab23504bcd26911481b47dbaf10646f723083a4
+            url: "https://mesa.freedesktop.org/archive/glu/glu-9.0.1.tar.gz"
+            sha256: f6f484cfcd51e489afe88031afdea1e173aa652697e4c19ddbcb8260579a10f7
 
       - name: OpenCL
         buildsystem: simple
@@ -284,10 +271,8 @@ modules:
           - -DFFMPEG=ON
         sources:
           - type: archive
-            url: "https://github.com/FNA-XNA/FAudio/archive/19.06.07.tar.gz"
-            sha256: 3a062ac74e787d2c50a5d178e9021ca4b2d4dddbbea6d36b82c767eb7f957128
-          - type: patch
-            path: patches/faudio-sdl2-use-pkg-config.patch
+            url: "https://github.com/FNA-XNA/FAudio/archive/19.12.tar.gz"
+            sha256: 35cc41e77aa0d48b08b42f1897442154b3f105d01f3aecd0690c37bc1b1bd4e0
 
   - name: wineserver
     buildsystem: simple
